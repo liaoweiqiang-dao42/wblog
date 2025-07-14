@@ -15,12 +15,16 @@ turbo-frame#comment-frame
           - if info = flash.now[:notice]
             #alert-container.alert.alert-success
               span.text #{info}
-              // ai fix
+              button class="close" type='button' data-dismiss='alert'
+                span &times;
+          - elsif error_info = flash.now[:error]
+            #alert-container.alert.alert-danger
+              span.text #{error_info}
               button class="close" type='button' data-dismiss='alert'
                 span &times;
           - elsif comment.errors.any?
             #alert-container.alert.alert-warning
-              span.text #{comment.errors[:content].first}
+              span.text #{comment.errors.full_messages.join(', ')}
               button class="close" type='button' data-dismiss='alert'
                 span &times;
         = render partial: 'comments/comment_content', locals: { comments: comments }

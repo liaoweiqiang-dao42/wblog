@@ -1,0 +1,92 @@
+- content_for :title, "内容检测工具"
+
+.row
+  .col-md-12
+    .card
+      .card-header
+        h4.card-title 内容检测工具
+        .card-actions
+          = link_to "返回列表", admin_sensitive_words_path, class: "btn btn-secondary btn-sm"
+
+      .card-body
+        .alert.alert-info
+          strong 使用说明：
+          | 输入任意文本内容，系统会自动检测其中的敏感词并显示检测结果。
+
+        = form_with url: check_content_admin_sensitive_words_path, method: :post, local: true do |f|
+          .row
+            .col-md-12
+              .mb-3
+                = f.label :content, "待检测内容", class: "form-label required"
+                = f.text_area :content, class: "form-control", rows: 8, 
+                              placeholder: "请输入要检测的文本内容...", 
+                              required: true, value: params[:content]
+                .form-text 输入任意文本内容进行敏感词检测
+
+          .row
+            .col-md-12
+              = f.submit "开始检测", class: "btn btn-primary"
+
+        - if defined?(@detection_result) && @detection_result
+          hr
+          .row
+            .col-md-6
+              .card
+                .card-header.bg-light
+                  h6.card-title.mb-0 原始内容
+                .card-body
+                  pre.bg-light.p-2= @detection_result[:original_content]
+
+            .col-md-6
+              .card
+                .card-header.bg-light
+                  h6.card-title.mb-0 过滤后内容
+                .card-body
+                  pre.bg-light.p-2= @detection_result[:filtered_content]
+
+          .row.mt-3
+            .col-md-12
+              .card
+                .card-header class=(@detection_result[:contains_sensitive] ? "bg-warning" : "bg-success")
+                  h6.card-title.mb-0.text-white
+                    = @detection_result[:contains_sensitive] ? "⚠️ 检测到敏感词" : "✅ 内容安全"
+                .card-body
+                  - if @detection_result[:contains_sensitive]
+                    .mb-3
+                      strong 检测摘要：
+                      span.text-danger= @detection_result[:summary]
+                      br
+                      strong 最高严重等级：
+                      - case @detection_result[:max_severity]
+                      - when 1
+                        span.badge.bg-success 轻微
+                      - when 2
+                        span.badge.bg-warning 中等
+                      - when 3
+                        span.badge.bg-danger 严重
+
+                    strong 检测到的敏感词：
+                    .table-responsive
+                      table.table.table-sm.table-bordered
+                        thead
+                          tr
+                            th 敏感词
+                            th 严重程度
+                            th 说明
+                        tbody
+                          - @detection_result[:detected_words].each do |word_data|
+                            tr class=("table-danger" if word_data[:severity] == 3)
+                              td
+                                strong= word_data[:word]
+                              td
+                                - case word_data[:severity]
+                                - when 1
+                                  span.badge.bg-success 轻微
+                                - when 2
+                                  span.badge.bg-warning 中等
+                                - when 3
+                                  span.badge.bg-danger 严重
+                              td= word_data[:description] || "无"
+                  - else
+                    .text-success
+                      strong 恭喜！内容中没有检测到敏感词，可以正常发布。

@@ -8,15 +8,16 @@ class CommentsController < ApplicationController
     @post = Post.find( params[:blog_id] )
     @comments = @post.comments.order(created_at: :desc)
 
-    # # 某些原因暂时关闭评论
-    flash.now[:notice] = '评论功能未开放'
-    return
-
     @comment = @post.comments.build(comment_params)
     if @comment.save
-      flash.now[:notice] = '发表成功'
-      # 重置评论
+      flash.now[:notice] = '评论发表成功'
+      # 重新加载评论列表
+      @comments = @post.comments.order(created_at: :desc)
+      # 重置评论表单
       @comment = Comment.new
+    else
+      # 显示验证错误（包括敏感词过滤错误）
+      flash.now[:error] = @comment.errors.full_messages.join(', ')
     end
   end
 
