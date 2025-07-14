@@ -1,0 +1,82 @@
+- content_for :title, "敏感词管理"
+
+.row
+  .col-md-12
+    .card
+      .card-header
+        h4.card-title 敏感词管理
+        .card-actions
+          = link_to "添加敏感词", new_admin_sensitive_word_path, class: "btn btn-primary btn-sm"
+          = link_to "批量导入", import_admin_sensitive_words_path, class: "btn btn-info btn-sm"
+          = link_to "内容检测", check_content_admin_sensitive_words_path, class: "btn btn-warning btn-sm"
+
+      .card-body
+        / 搜索表单
+        = form_with url: admin_sensitive_words_path, method: :get, local: true, class: "row g-3 mb-3" do |f|
+          .col-md-3
+            = f.text_field :search, placeholder: "搜索敏感词", value: params[:search], class: "form-control"
+          .col-md-2
+            = f.select :severity, options_for_select([["全部", ""], ["轻微", 1], ["中等", 2], ["严重", 3]], params[:severity]), {}, class: "form-select"
+          .col-md-2
+            = f.select :enabled, options_for_select([["全部", ""], ["启用", "true"], ["禁用", "false"]], params[:enabled]), {}, class: "form-select"
+          .col-md-2
+            = f.submit "搜索", class: "btn btn-secondary"
+            = link_to "重置", admin_sensitive_words_path, class: "btn btn-outline-secondary"
+
+        / 统计信息
+        .row.mb-3
+          .col-md-12
+            .alert.alert-info
+              strong 统计: 
+              | 总数: #{SensitiveWord.count} | 
+              | 启用: #{SensitiveWord.enabled.count} | 
+              | 严重: #{SensitiveWord.by_severity(3).count} | 
+              | 中等: #{SensitiveWord.by_severity(2).count} | 
+              | 轻微: #{SensitiveWord.by_severity(1).count}
+
+        / 敏感词列表
+        - if @sensitive_words.any?
+          .table-responsive
+            table.table.table-striped.table-hover
+              thead.table-dark
+                tr
+                  th 敏感词
+                  th 严重程度
+                  th 描述
+                  th 状态
+                  th 创建时间
+                  th 操作
+              tbody
+                - @sensitive_words.each do |word|
+                  tr class=("table-danger" if word.severity == 3)
+                    td
+                      strong= word.word
+                    td
+                      - case word.severity
+                      - when 1
+                        span.badge.bg-success= word.severity_text
+                      - when 2
+                        span.badge.bg-warning= word.severity_text
+                      - when 3
+                        span.badge.bg-danger= word.severity_text
+                    td= word.description
+                    td
+                      - if word.enabled?
+                        span.badge.bg-success 启用
+                      - else
+                        span.badge.bg-secondary 禁用
+                    td= word.created_at.strftime("%Y-%m-%d %H:%M")
+                    td
+                      = link_to "编辑", edit_admin_sensitive_word_path(word), class: "btn btn-sm btn-outline-primary"
+                      = link_to "#{word.enabled? ? '禁用' : '启用'}", toggle_admin_sensitive_word_path(word), method: :patch, class: "btn btn-sm btn-outline-#{word.enabled? ? 'warning' : 'success'}"
+                      = link_to "删除", admin_sensitive_word_path(word), method: :delete, 
+                                data: { confirm: "确定要删除敏感词 '#{word.word}' 吗？" }, 
+                                class: "btn btn-sm btn-outline-danger"
+
+          / 分页
+          .d-flex.justify-content-center
+            = paginate @sensitive_words
+        - else
+          .alert.alert-warning
+            | 没有找到敏感词。
+            = link_to "立即添加", new_admin_sensitive_word_path, class: "btn btn-primary btn-sm"

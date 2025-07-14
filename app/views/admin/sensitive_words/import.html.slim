@@ -1,0 +1,53 @@
+- content_for :title, "批量导入敏感词"
+
+.row
+  .col-md-10
+    .card
+      .card-header
+        h4.card-title 批量导入敏感词
+        .card-actions
+          = link_to "返回列表", admin_sensitive_words_path, class: "btn btn-secondary btn-sm"
+
+      .card-body
+        .alert.alert-info
+          h6 导入说明：
+          ul.mb-0
+            li 每行一个敏感词，或用逗号分隔
+            li 重复的敏感词会被自动忽略
+            li 导入后的敏感词默认为启用状态
+
+        = form_with url: import_admin_sensitive_words_path, method: :post, local: true do |f|
+          .row
+            .col-md-8
+              .mb-3
+                = f.label :words_text, "敏感词列表", class: "form-label required"
+                = f.text_area :words_text, class: "form-control", rows: 10, 
+                              placeholder: "请输入敏感词，每行一个或用逗号分隔：\n暴力\n欺诈\n垃圾信息\n色情,赌博,毒品", 
+                              required: true
+                .form-text 支持每行一个敏感词，或用逗号、中文逗号分隔
+
+            .col-md-4
+              .mb-3
+                = f.label :default_severity, "默认严重程度", class: "form-label"
+                = f.select :default_severity, options_for_select([
+                    ["轻微", 1],
+                    ["中等", 2],
+                    ["严重", 3]
+                  ], 2), {}, { class: "form-select" }
+                .form-text 批量导入敏感词的默认严重等级
+
+              .mb-3
+                .card.bg-light
+                  .card-body.small
+                    strong 严重程度说明：
+                    br
+                    span.text-success 轻微：允许发布，仅记录日志
+                    br
+                    span.text-warning 中等：阻止发布，需要修改
+                    br
+                    span.text-danger 严重：完全禁止发布
+
+          .row
+            .col-md-12
+              = f.submit "开始导入", class: "btn btn-primary"
+              = link_to "取消", admin_sensitive_words_path, class: "btn btn-secondary"

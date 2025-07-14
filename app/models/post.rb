@@ -7,6 +7,7 @@ class Post < ActiveRecord::Base
 
   validates :title, :presence=>true, :uniqueness=> true
   validates :content, :presence=>true, :length => { :minimum=> 3 }
+  validate :check_sensitive_words
 
   def content_html
     self.class.render_html(self.content)
@@ -49,5 +50,34 @@ class Post < ActiveRecord::Base
 
   def liked_by?(like_id)
     !! self.likes.where(id: like_id).first
+  end
+
+  private
+
+  def check_sensitive_words
+    # 检查标题
+    title_filter = SensitiveWordFilterService.new(title)
+    title_filter.detect
+    
+    if title_filter.contains_severe_words?
+      errors.add(:title, "包含严重敏感词，无法发布")
+    elsif title_filter.contains_moderate_words?
+      errors.add(:title, "包含中等敏感词，请修改后重试")
+    end
+    
+    # 检查内容
+    content_filter = SensitiveWordFilterService.new(content)
+    content_filter.detect
+    
+    if content_filter.contains_severe_words?
+      errors.add(:content, "包含严重敏感词，无法发布")
+    elsif content_filter.contains_moderate_words?
+      errors.add(:content, "包含中等敏感词，请修改后重试")
+    end
+    
+    # 轻微敏感词只记录警告，不阻止发布
+    if title_filter.contains_sensitive_words? || content_filter.contains_sensitive_words?
+      Rails.logger.warn "Post sensitive word detection: Title[#{title_filter.detection_summary}], Content[#{content_filter.detection_summary}]"
+    end
   end
 end

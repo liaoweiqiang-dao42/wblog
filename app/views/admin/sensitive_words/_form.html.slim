@@ -1,0 +1,44 @@
+= form_with model: [:admin, sensitive_word], local: true do |f|
+  - if sensitive_word.errors.any?
+    .alert.alert-danger
+      h6 表单有以下错误：
+      ul.mb-0
+        - sensitive_word.errors.full_messages.each do |message|
+          li= message
+
+  .row
+    .col-md-12
+      .mb-3
+        = f.label :word, "敏感词", class: "form-label required"
+        = f.text_field :word, class: "form-control", placeholder: "请输入敏感词", required: true
+        .form-text 敏感词内容（不区分大小写）
+
+    .col-md-6
+      .mb-3
+        = f.label :severity, "严重程度", class: "form-label required"
+        = f.select :severity, options_for_select([
+            ["轻微 - 允许发布，仅记录日志", 1],
+            ["中等 - 阻止发布，需要修改", 2],
+            ["严重 - 完全禁止发布", 3]
+          ], sensitive_word.severity), { prompt: "请选择严重程度" }, { class: "form-select", required: true }
+        .form-text 选择敏感词的严重等级
+
+    .col-md-6
+      .mb-3
+        = f.label :enabled, "状态", class: "form-label"
+        = f.select :enabled, options_for_select([
+            ["启用", true],
+            ["禁用", false]
+          ], sensitive_word.enabled), {}, { class: "form-select" }
+        .form-text 是否启用该敏感词检测
+
+    .col-md-12
+      .mb-3
+        = f.label :description, "说明", class: "form-label"
+        = f.text_area :description, class: "form-control", rows: 3, placeholder: "可选：添加关于该敏感词的说明或来源"
+        .form-text 可选：敏感词的说明信息
+
+  .row
+    .col-md-12
+      = f.submit sensitive_word.new_record? ? "添加敏感词" : "更新敏感词", class: "btn btn-primary"
+      = link_to "取消", admin_sensitive_words_path, class: "btn btn-secondary"

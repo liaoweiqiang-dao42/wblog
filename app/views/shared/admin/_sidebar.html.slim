@@ -31,3 +31,8 @@ aside.app-sidebar.bg-body-secondary.shadow data-bs-theme="dark"
           = link_to admin_labels_path, class: "nav-link #{admin_active_for(admin_labels_path, current_path)}" do
             i.nav-icon.fas.fa-list
             span 标签管理
+        li.nav-header 内容安全
+        li.nav-item
+          = link_to admin_sensitive_words_path, class: "nav-link #{admin_active_for(admin_sensitive_words_path, current_path)}" do
+            i.nav-icon.fas.fa-shield-alt
+            span 敏感词管理

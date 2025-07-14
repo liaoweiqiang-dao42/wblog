@@ -1,0 +1,12 @@
+- content_for :title, "添加敏感词"
+
+.row
+  .col-md-8
+    .card
+      .card-header
+        h4.card-title 添加敏感词
+        .card-actions
+          = link_to "返回列表", admin_sensitive_words_path, class: "btn btn-secondary btn-sm"
+
+      .card-body
+        = render 'form', sensitive_word: @sensitive_word

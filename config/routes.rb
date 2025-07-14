@@ -40,6 +40,18 @@ Rails.application.routes.draw do
 
     resources :all_comments, only: [:index, :destroy]
     resources :labels
+    
+    resources :sensitive_words do
+      member do
+        patch :toggle
+      end
+      collection do
+        get :import
+        post :import
+        get :check_content
+        post :check_content
+      end
+    end
 
 
     root to: 'dashboard#index'
